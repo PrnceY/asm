@@ -1,0 +1,19 @@
+mov ax, 0b800h
+mov es, ax
+mov di, 320    
+mov al, 'A'
+
+right:
+    mov b[es:di], al
+    mov cx, 0FFFFh
+    delay1: sub cx, 1
+    jnz delay1
+    mov b[es:di], '' 
+    add di, 2
+    cmp di, 480
+    jb right
+    mov di, 320
+    mov cx, 0FFFFh
+    jmp right
+
+int 20h
