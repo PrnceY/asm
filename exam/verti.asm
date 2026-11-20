@@ -1,34 +1,19 @@
-; unsure of output, ask help
-
+; mirrors the screen top to bottom
 
 mov ax, 0b800h
-mov es, ax
 mov ds, ax
+mov es, ax
 
-mov si, 0
-mov di, 24 * 160
-mov cx, 12
+cld
+xor si, si          ; source: row 0
+mov di, 3840        ; destination: row 24 (24 * 160)
+mov bx, 12          ; 12 rows to copy
 
 row_loop:
-    push cx
-    push si
-    push di
-    mov cx, 80
-
-    col_loop:
-        mov ax, [si]
-        mov bx, [di]
-        mov [di], ax
-        mov [si], bx
-        add si, 2
-        add di, 2
-        loop col_loop
-
-    pop di
-    pop si
-    add si, 160
-    sub di, 160
-    pop cx
-    loop row_loop
+    mov cx, 80      ; 80 characters per row
+    rep movsw       ; copy one whole row
+    sub di, 320     ; go back up to the previous row
+    dec bx
+    jnz row_loop
 
 int 20h

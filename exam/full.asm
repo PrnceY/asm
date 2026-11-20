@@ -1,28 +1,20 @@
-; rotates the whole screen
-; work on this too
+; rotates the whole screen 180 degrees
 
 mov ax, 0b800h
-mov es, ax
 mov ds, ax
 
-mov si, 160        ; start reading from row 1
-mov di, 0          ; start writing to row 0
-mov cx, 24 * 80    ; 24 rows worth of words to copy
+xor si, si          ; start of screen
+mov di, 3998        ; last character (80 * 25 * 2 - 2)
+mov cx, 1000        ; half of 2000 characters
 
-copy_loop:
+swap_loop:
     mov ax, [si]
+    mov bx, [di]
+    mov [si], bx
     mov [di], ax
-    add si, 2
-    add di, 2
-    loop copy_loop
 
-; clear last row
-mov di, 24 * 160
-mov cx, 80
-mov ax, 0720h      ; space + gray color
-clear_loop:
-    mov [di], ax
-    add di, 2
-    loop clear_loop
+    add si, 2
+    sub di, 2
+    loop swap_loop
 
 int 20h
