@@ -1,13 +1,13 @@
 ; flips the screen horizontally
 
-mov ax, 0b800h
-mov ds, AX
-mov es, AX
+mov ax, 0b800h  ; fixed address
+mov ds, AX      ; read
+mov es, AX      ; write
 
-xor bx, BX
+xor bx, BX  
 mov cx, 25
 
-row_loop:
+rw_loop:
     push CX
 
     mov si, BX
@@ -26,6 +26,6 @@ col_loop:
 
     add bx, 160
     pop CX
-    loop row_loop
+    loop rw_loop
 
 int 20h
