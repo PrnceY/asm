@@ -1,57 +1,81 @@
-; Switch to graphics mode 320x200, 256 colors
-mov ax, 0013h
-int 10h
+; Draw with the mouse in VGA graphics mode.
+; Press 1 for red, 2 for green. Hold left button to draw.
+; Press ESC to exit. Requires a DOS mouse driver.
+        ORG 100
 
-mov ax, 0a000h
-mov es, ax
 
-; Initialize mouse
-mov ax, 0
-int 33h
+        XOR AX,AX
+        INT 33
+        CMP AX,0FFFF
+        JNE NO_MOUSE
 
-main:
-    ; --- check keyboard (non-blocking) ---
-    mov ah, 1
-    int 16h
-    jz mouse_check          ; no key pressed
-    mov ah, 0
-    int 16h                 ; read key into al
-    cmp al, '1'
-    je set_red
-    cmp al, '2'
-    je set_green
-    cmp al, 27              ; ESC
-    je done
-    jmp mouse_check
 
-set_red:
-    mov b[color], 4         ; red
-    jmp mouse_check
+        MOV AX,13
+        INT 10
 
-set_green:
-    mov b[color], 2         ; green
 
-mouse_check:
-    mov ax, 3
-    int 33h                 ; bx = buttons, cx = x, dx = y
-    test bx, 1              ; left button held?
-    jz main
+        MOV AX,7
+        MOV CX,0
+        MOV DX,639
+        INT 33
+        MOV AX,8
+        MOV CX,0
+        MOV DX,199
+        INT 33
 
-    ; di = y * 320 + x
-    shr cx, 1               ; in mode 13h, mouse x is 0-639, so divide by 2
-    mov ax, dx
-    mov bx, 320
-    mul bx                  ; ax = y * 320
-    add ax, cx
-    mov di, ax
 
-    mov al, [color]
-    mov es:[di], al         ; plot pixel
-    jmp main
+        MOV BYTE PTR [COLOR],4
+        MOV AX,1
+        INT 33
 
-done:
-    mov ax, 0003h           ; back to text mode
-    int 10h
-    int 20h
 
-color db 4                  ; default: red
+MAIN:
+        MOV AH,1
+        INT 16
+        JZ MOUSE
+        MOV AH,0
+        INT 16
+        CMP AL,27
+        JE QUIT
+        CMP AL,'1'
+        JNE GREEN
+        MOV BYTE PTR [COLOR],4
+        JMP MOUSE
+GREEN:
+        CMP AL,'2'
+        JNE MOUSE
+        MOV BYTE PTR [COLOR],2
+
+
+MOUSE:
+        MOV AX,3
+        INT 33
+        TEST BX,1
+        JZ MAIN
+        SHR CX,1
+        MOV AH,0C
+        MOV AL,[COLOR]
+        MOV BH,0
+        INT 10
+        JMP MAIN
+
+
+QUIT:
+        MOV AX,2
+        INT 33
+        MOV AX,3
+        INT 10
+        MOV AX,4C00
+        INT 21
+
+
+NO_MOUSE:
+        MOV AH,9
+        MOV DX,OFFSET ERRMSG
+        INT 21
+        MOV AX,4C01
+        INT 21
+
+
+COLOR DB 4
+ERRMSG DB 'Mouse driver not found.$'

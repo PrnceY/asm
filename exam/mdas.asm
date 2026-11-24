@@ -1,110 +1,106 @@
-; MDAS with input: pick ONE operation below
-
-mov dx, offset p1
-call ask
-mov w[n1], ax
-mov dx, offset p2
-call ask
-mov w[n2], ax
-
-; ===== choose ONE operation =====
-
-; --- MULTIPLY (active) ---
-; mov ax, w[n1]
-; mul w[n2]
-; mov dx, offset m1
-
-; --- DIVIDE ---
-mov ax, w[n1]
-xor dx, dx
-div w[n2]
-mov dx, offset m2
+; Simple MDAS calculator using two single-digit numbers.
+; Enter number, operator (+ - * /), then number.
+        ORG 100
 
 
-; --- ADD ---
-; mov ax, w[n1]
-; add ax, w[n2]
-; mov dx, offset m3
+        MOV AH,9
+        MOV DX,OFFSET MSG1
+        INT 21
+        MOV AH,1
+        INT 21
+        SUB AL,'0'
+        MOV BL,AL
 
-; --- SUBTRACT ---
-; mov ax, w[n1]
-; sub ax, w[n2]
-; mov dx, offset m4
 
-; ================================
+        MOV AH,9
+        MOV DX,OFFSET MSG2
+        INT 21
+        MOV AH,1
+        INT 21
+        MOV BH,AL
 
-call show
-int 20h
 
-; ask: dx = prompt, returns number in ax
-ask:
-    mov ah, 9
-    int 21h
-    call read_num
-    ret
+        MOV AH,9
+        MOV DX,OFFSET MSG3
+        INT 21
+        MOV AH,1
+        INT 21
+        SUB AL,'0'
+        MOV CL,AL
 
-; reads digits until Enter, returns number in ax
-read_num:
-    xor bx, bx
-rn1:
-    mov ah, 1
-    int 21h
-    cmp al, 13
-    je rn2
-    sub al, '0'
-    mov ah, 0
-    mov cx, ax
-    mov ax, bx
-    mov dx, 10
-    mul dx
-    add ax, cx
-    mov bx, ax
-    jmp rn1
-rn2:
-    mov dx, offset nl
-    mov ah, 9
-    int 21h
-    mov ax, bx
-    ret
 
-; show: dx = message, ax = number to print
-show:
-    push ax
-    mov ah, 9
-    int 21h
-    pop ax
-    call print_num
-    mov dx, offset nl
-    mov ah, 9
-    int 21h
-    ret
+        MOV AL,BL
+        CMP BH,'+'
+        JE ADD_NUM
+        CMP BH,'-'
+        JE SUB_NUM
+        CMP BH,'*'
+        JE MUL_NUM
+        CMP BH,'/'
+        JE DIV_NUM
+        JMP EXIT
 
-; prints ax as decimal
-print_num:
-    mov bx, 10
-    xor cx, cx
-pn1:
-    xor dx, dx
-    div bx
-    push dx
-    inc cx
-    cmp ax, 0
-    jne pn1
-pn2:
-    pop dx
-    add dl, '0'
-    mov ah, 2
-    int 21h
-    loop pn2
-    ret
 
-p1 db 'Enter first number: $'
-p2 db 'Enter second number: $'
-m1 db 'Product: $'
-m2 db 'Quotient: $'
-m3 db 'Sum: $'
-m4 db 'Difference: $'
-nl db 13, 10, '$'
+ADD_NUM:
+        ADD AL,CL
+        JMP SHOW
+SUB_NUM:
+        CMP AL,CL
+        JB NEGATIVE
+        SUB AL,CL
+        JMP SHOW
+MUL_NUM:
+        MUL CL
+        JMP SHOW
+DIV_NUM:
+        CMP CL,0
+        JE ZERO_DIV
+        XOR AH,AH
+        DIV CL
+        JMP SHOW
 
-n1 dw 0
-n2 dw 0
+
+SHOW:
+        XOR AH,AH
+        MOV BL,10
+        DIV BL
+        MOV BH,AH
+        CMP AL,0
+        JE ONE_DIGIT
+        ADD AL,'0'
+        MOV DL,AL
+        MOV AH,2
+        INT 21
+ONE_DIGIT:
+        MOV DL,BH
+        ADD DL,'0'
+        MOV AH,2
+        INT 21
+        JMP EXIT
+
+
+NEGATIVE:
+        MOV AH,9
+        MOV DX,OFFSET NEGMSG
+        INT 21
+        JMP EXIT
+ZERO_DIV:
+        MOV AH,9
+        MOV DX,OFFSET ZMSG
+        INT 21
+
+
+EXIT:
+        MOV AH,9
+        MOV DX,OFFSET ENDMSG
+        INT 21
+        MOV AX,4C00
+        INT 21
+
+
+MSG1 DB 'First digit (0-9): $'
+MSG2 DB 13,10,'Operator (+ - * /): $'
+MSG3 DB 13,10,'Second digit (0-9): $'
+NEGMSG DB 13,10,'Negative result not supported.$'
+ZMSG DB 13,10,'Cannot divide by zero.$'
+ENDMSG DB 13,10,'$'
