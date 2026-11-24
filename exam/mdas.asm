@@ -2,7 +2,6 @@
 ; Enter number, operator (+ - * /), then number.
         ORG 100
 
-
         MOV AH,9
         MOV DX,OFFSET MSG1
         INT 21
