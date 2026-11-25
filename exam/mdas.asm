@@ -125,4 +125,4 @@ NEGMSG  DB 13,10,'Negative result not supported.$'
 ZMSG    DB 13,10,'Cannot divide by zero.$'
 ENDMSG  DB 13,10,'$'
 RESMSG  DB 13,10,'Result: $'
-;test5
+;test
