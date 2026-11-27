@@ -1,7 +1,5 @@
 mov ax, 0b800h
 mov es, ax
-
-
 mov si, 0
 
 
@@ -11,18 +9,16 @@ nextrow:
     mov di, bp
     add di, 158
     mov ax, word ptr es:[di]
-
-
     push ax
     sub di, 2
     mov cx, 79
-rotate:
+forward:
     mov ax, word ptr es:[di]
     mov word ptr es:[di + 2], ax
 
 
     sub di, 2
-    loop rotate
+    loop forward
 
 
     pop ax
@@ -53,4 +49,4 @@ doit:
     jb start
 
 
-int 20h
+    int 21h

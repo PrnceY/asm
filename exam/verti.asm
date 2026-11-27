@@ -42,4 +42,4 @@ doit:
     cmp si, 25               ; 25 rows = one full cycle
     jb start
 
-int 20h
+int 21h

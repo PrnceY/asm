@@ -1,8 +1,23 @@
 
-mov ah, 9
-mov dx, OFFSET MESSAGE
-mov bx, ANOTHER
-int 21h
+mov ax, 9;
+mov bx, 9;
 
-MESSAGE DB 'HELLOWORLD$'
-ANOTHER DB 'HI$'
+cmp ax, bx;
+je same
+
+mov ah, 9
+mov dx, OFFSET alternate
+int 21h
+jmp finish
+
+same: 
+    mov ah, 9
+    mov dx, OFFSET message
+    int 21h
+
+finish:
+    mov 4CH
+    int 21h
+
+message db 'They are equal$'
+alternate db 'They are not equal$'
